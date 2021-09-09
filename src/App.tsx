@@ -1,40 +1,44 @@
-import React, { useState, useRef } from 'react'
-import { Canvas, MeshProps, useFrame, MeshBasicMaterialProps } from '@react-three/fiber'
+import React, { Suspense } from 'react'
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Environment } from '@react-three/drei'
+import { Box } from './library';
+import { PoimandresModel } from './models';
 
 // styles
 import './App.sass'
 
-const Box: React.FC<MeshProps> = (props) => {
-  // This reference will give us direct access to the mesh
-  const mesh = useRef<MeshBasicMaterialProps>(null!)
-  // Set up state for the hovered and active state
-  const [hovered, setHover] = useState(false)
-  const [active, setActive] = useState(false)
-  // Rotate mesh every frame, this is outside of React without overhead
-  useFrame(() => (mesh.current.rotation.x += 0.01))
-  
-  return (
-    <mesh
-      {...props}
-      ref={mesh}
-      scale={active ? 1.5 : 1}
-      onClick={(event) => setActive(!active)}
-      onPointerOver={(event) => setHover(true)}
-      onPointerOut={(event) => setHover(false)}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial attach="material" color={hovered ? 'hotpink' : 'orange'} />
-    </mesh>
-  )
+const Light = () => {
+  return <>
+    <ambientLight />
+    <pointLight position={[10, 10, 10]} />
+  </>
+}
+
+const SceneHelpers = () => {
+  return <>
+    <gridHelper />
+    <OrbitControls />
+  </>
 }
 
 function App() {
   return (
     <div className="App">
-      <Canvas>
-        <ambientLight />
-        <pointLight position={[10, 10, 10]} />
-        <Box position={[-1.2, 0, 0]} />
-        <Box position={[1.2, 0, 0]} />
+      <Canvas
+        shadows
+        camera={{
+          position: [5, 5, 5],
+        }}
+      >
+        <Suspense fallback={null}>
+          <SceneHelpers />
+          <Light />
+          <Box position={[-1, 1, 0]} />
+          <Box position={[1, 1, 0]} />
+          <Environment files={['zeus_ft.jpg', 'zeus_bk.jpg', 'zeus_up.jpg', 'zeus_dn.jpg', 'zeus_rt.jpg', 'zeus_lf.jpg']} path="/zeus/" background />
+          <SceneHelpers />
+          <PoimandresModel />
+        </Suspense>
       </Canvas>
     </div>
   )
